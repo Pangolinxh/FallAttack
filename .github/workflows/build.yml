@@ -1,0 +1,43 @@
+
+name: Build FallAttack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+
+      - name: Download Gradle
+        run: |
+          curl -L https://services.gradle.org/distributions/gradle-2.14.1-bin.zip -o gradle.zip
+          unzip -q gradle.zip
+
+      - name: Extract source
+        run: |
+          unzip -q FallAttack-1.8.9-source.zip
+
+      - name: Build Mod
+        run: |
+          cd FallAttack-1.8.9
+          ../gradle-2.14.1/bin/gradle setupDecompWorkspace build --no-daemon
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: FallAttack-1.8.9
+          path: FallAttack-1.8.9/build/libs/*.jar
+          if-no-files-found: error
